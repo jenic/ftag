@@ -15,6 +15,7 @@ sub getTags;
 my %db;
 our %opts;
 my $cwd = cwd();
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
 
 getopts('vid:t:f:', \%opts);
 $opts{d} = _DB unless exists $opts{d};
@@ -34,6 +35,7 @@ if (exists $opts{t} && exists $opts{f}) {
         $db{$tag} = {} unless exists $db{$tag};
         $db{$tag}{"$cwd/$opts{f}"}++;
     }
+    save();
 } elsif (exists $opts{t}) {
     # Looking for files with tags
     # TODO: intersection
@@ -56,9 +58,13 @@ if (exists $opts{t} && exists $opts{f}) {
         }
     }
     print "$file tags: @tags\n";
+} else {
+    # Default, show all tags
+    while (my ($k, $v) = each %db) {
+        printf "%s: %i tags\n",
+        $k, scalar keys %{$v};
+    }
 }
-
-save();
 
 sub save {
     lock_store \%db, $opts{d} or die "E: $!\n";
@@ -66,4 +72,13 @@ sub save {
 
 sub getTags {
     return split ',', shift || $opts{t};
+}
+
+sub HELP_MESSAGE {
+    print <<EOF;
+Syntax: tag [ -t <tag1,tag2,...> | -f <file.name> ] | [-v] [-d <file>]
+If -t and -f are found in same runtime it is assumed you are tagging a file.
+-v  Verbose output
+-d  Specify database file, default is ~/.tags.db
+EOF
 }
