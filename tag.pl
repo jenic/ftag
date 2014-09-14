@@ -10,7 +10,7 @@ use constant {
 };
 
 sub save;
-sub getTags;
+sub getItems;
 
 my %db;
 our %opts;
@@ -30,17 +30,19 @@ save() unless (-e $opts{d});
 
 if (exists $opts{t} && exists $opts{f}) {
     # Adding a tag
-    for my $tag (getTags()) {
-        Debug::msg("Got $tag");
-        $db{$tag} = {} unless exists $db{$tag};
-        $db{$tag}{"$cwd/$opts{f}"}++;
+    for my $file (getItems($opts{f})) {
+        for my $tag (getItems($opts{t})) {
+            Debug::msg("Got $tag");
+            $db{$tag} = {} unless exists $db{$tag};
+            $db{$tag}{"$cwd/$file"}++;
+        }
     }
     save();
 } elsif (exists $opts{t}) {
     # Looking for files with tags
     # TODO: intersection
     # http://docstore.mik.ua/orelly/perl/cookbook/ch04_09.htm
-    for my $tag (getTags()) {
+    for my $tag (getItems($opts{t})) {
         if (exists $db{$tag}) {
             print "$tag:\n";
             for (keys %{$db{$tag}}) {
@@ -70,13 +72,13 @@ sub save {
     lock_store \%db, $opts{d} or die "E: $!\n";
 }
 
-sub getTags {
+sub getItems {
     return split ',', shift || $opts{t};
 }
 
 sub HELP_MESSAGE {
     print <<EOF;
-Syntax: tag [ -t <tag1,tag2,...> | -f <file.name> ] | [-v] [-d <file>]
+Syntax: tag [ -t <tag1,tag2,...> | -f <file1,file2,...> ] | [-v] [-d <file>]
 If -t and -f are found in same runtime it is assumed you are tagging a file.
 -v  Verbose output
 -d  Specify database file, default is ~/.tags.db
