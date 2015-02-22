@@ -1,9 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 use strict;
 use Storable qw(lock_store lock_retrieve);
 use Getopt::Std;
 use Cwd qw(cwd);
 require "/home/jenic/Projects/Debug/lib/Debug.pm";
+# Yes I know Debug is used only once...stfu
+no warnings qw(once);
 
 use constant {
     _DB => $ENV{HOME} . '/.tags.db',
