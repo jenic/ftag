@@ -19,7 +19,7 @@ our %opts;
 my $cwd = cwd();
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
-getopts('vid:t:f:', \%opts);
+getopt('vid:t:f:', \%opts);
 $opts{d} = _DB unless exists $opts{d};
 $Debug::ENABLED = 0 unless exists $opts{v};
 
@@ -54,14 +54,17 @@ if (exists $opts{t} && exists $opts{f}) {
     }
 } elsif (exists $opts{f}) {
     # What tags does this file have?
-    my $file = "$cwd/$opts{f}";
-    my @tags;
-    for my $tag (keys %db) {
-        if (exists $db{$tag}{$file}) {
-            push @tags, $tag;
+    for my $file (getItems($opts{f})) {
+        # Absolute or relative path?
+        my $f = ($file !~ /^\//) ? "$cwd/$file" : $file;
+        my @tags;
+        for my $tag (keys %db) {
+            if (exists $db{$tag}{$f}) {
+                push @tags, $tag;
+            }
         }
+        print "$f tags: @tags\n";
     }
-    print "$file tags: @tags\n";
 } else {
     # Default, show all tags
     while (my ($k, $v) = each %db) {
