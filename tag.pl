@@ -16,7 +16,7 @@ our %opts;
 my $cwd = cwd();
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
-getopt('d:t:f:', \%opts);
+getopts('dt:f:', \%opts);
 $opts{d} = _DB unless exists $opts{d};
 
 save() unless (-e $opts{d});
@@ -94,6 +94,6 @@ sub HELP_MESSAGE {
     print <<EOF;
 Syntax: tag [ -t <tag1,tag2,...> | -f <file1,file2,...> ] | [-v] [-d <file>]
 If -t and -f are found in same runtime it is assumed you are tagging a file.
--d  Specify database file, default is ~/.tags.db
+-d  Do not save. Dry run.
 EOF
 }
