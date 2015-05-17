@@ -26,7 +26,6 @@ if (exists $opts{t} && exists $opts{f}) {
     # Adding a tag
     for my $file (getItems($opts{f})) {
         for my $tag (getItems($opts{t})) {
-            Debug::msg("Got $tag");
             $db{$tag} = {} unless exists $db{$tag};
             $db{$tag}{"$cwd/$file"}++;
         }
