@@ -3,9 +3,6 @@ use strict;
 use Storable qw(lock_store lock_retrieve);
 use Getopt::Std;
 use Cwd qw(cwd);
-require "/home/jenic/Projects/Debug/lib/Debug.pm";
-# Yes I know Debug is used only once...stfu
-no warnings qw(once);
 
 use constant {
     _DB => $ENV{HOME} . '/.tags.db',
@@ -19,13 +16,8 @@ our %opts;
 my $cwd = cwd();
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
-getopt('vid:t:f:', \%opts);
+getopt('d:t:f:', \%opts);
 $opts{d} = _DB unless exists $opts{d};
-$Debug::ENABLED = 0 unless exists $opts{v};
-
-while (my ($k, $v) = each %opts) {
-    Debug::msg("Have $k => $v\n");
-}
 
 save() unless (-e $opts{d});
 %db = %{ lock_retrieve($opts{d}) };
@@ -41,6 +33,12 @@ if (exists $opts{t} && exists $opts{f}) {
     }
     save();
 } elsif (exists $opts{t}) {
+    # If no tags specified, dump all tags
+    if (!$opts{t}) {
+        print "$_\n" for (keys %db);
+        exit;
+    }
+
     # Looking for files with tags
     # TODO: intersection
     # http://docstore.mik.ua/orelly/perl/cookbook/ch04_09.htm
@@ -53,6 +51,17 @@ if (exists $opts{t} && exists $opts{f}) {
         }
     }
 } elsif (exists $opts{f}) {
+    # If no file specified, dump all files
+    if (!$opts{f}) {
+        for my $tag (keys %db) {
+            print "$tag:\n";
+            for my $file (keys %{$db{$tag}}) {
+                print "\t$file\n";
+            }
+        }
+        exit;
+    }
+
     # What tags does this file have?
     for my $file (getItems($opts{f})) {
         # Absolute or relative path?
@@ -85,7 +94,6 @@ sub HELP_MESSAGE {
     print <<EOF;
 Syntax: tag [ -t <tag1,tag2,...> | -f <file1,file2,...> ] | [-v] [-d <file>]
 If -t and -f are found in same runtime it is assumed you are tagging a file.
--v  Verbose output
 -d  Specify database file, default is ~/.tags.db
 EOF
 }
